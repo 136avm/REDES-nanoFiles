@@ -29,6 +29,7 @@ public class PeerMessageTest {
 		msgOut.writeMessageToOutputStream(fos);
 		DataInputStream fis = new DataInputStream(new FileInputStream(nombreArchivo));
 		PeerMessage msgIn = PeerMessage.readMessageFromInputStream((DataInputStream) fis);
+		
 		/*
 		 * TODO: Comprobar que coinciden los valores de los atributos relevantes al tipo
 		 * de mensaje en ambos mensajes (msgOut y msgIn), empezando por el opcode.
