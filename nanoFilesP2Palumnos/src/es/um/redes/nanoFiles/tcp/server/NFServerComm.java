@@ -31,6 +31,7 @@ public class NFServerComm {
 			
 		} catch (IOException e) {
 			e.printStackTrace();
+			
 		}
 		/*
 		 * TODO: Mientras el cliente esté conectado, leer mensajes de socket,
