@@ -1,4 +1,0 @@
-INDEX VERSION 1.134+/home/avm/Escritorio/redes/.metadata/.plugins/org.eclipse.jdt.core
-3898341475.index
-3172629311.index
-1865797976.index
