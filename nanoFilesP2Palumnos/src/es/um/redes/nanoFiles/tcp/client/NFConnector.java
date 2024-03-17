@@ -21,7 +21,6 @@ public class NFConnector {
 	DataInputStream dis;
 	DataOutputStream dos;
 
-
 	public NFConnector(InetSocketAddress fserverAddr) throws UnknownHostException, IOException {
 		serverAddr = fserverAddr;
 		/*
@@ -59,32 +58,54 @@ public class NFConnector {
 		 * al servidor a través del "dos" del socket mediante el método
 		 * writeMessageToOutputStream.
 		 */
+		PeerMessage request = new PeerMessage(PeerMessageOps.OPCODE_DOWNLOAD_FROM);
+		request.setHash(Integer.parseInt(targetFileHashSubstr));
+		request.setFileName(file.getName());
+		request.setNickname(serverAddr.toString());
+		request.writeMessageToOutputStream(dos);
 		/*
 		 * TODO: Recibir mensajes del servidor a través del "dis" del socket usando
 		 * PeerMessage.readMessageFromInputStream, y actuar en función del tipo de
 		 * mensaje recibido, extrayendo los valores necesarios de los atributos del
 		 * objeto (valores de los campos del mensaje).
 		 */
-		/*
-		 * TODO: Para escribir datos de un fichero recibidos en un mensaje, se puede
-		 * crear un FileOutputStream a partir del parámetro "file" para escribir cada
-		 * fragmento recibido (array de bytes) en el fichero mediante el método "write".
-		 * Cerrar el FileOutputStream una vez se han escrito todos los fragmentos.
-		 */
+		PeerMessage response = PeerMessage.readMessageFromInputStream(dis);
+		if(response.getOpcode() == PeerMessageOps.OPCODE_DOWNLOAD_FROM_OK) {
+			
+			/*
+			 * TODO: Para escribir datos de un fichero recibidos en un mensaje, se puede
+			 * crear un FileOutputStream a partir del parámetro "file" para escribir cada
+			 * fragmento recibido (array de bytes) en el fichero mediante el método "write".
+			 * Cerrar el FileOutputStream una vez se han escrito todos los fragmentos.
+			 */
+			
+			FileOutputStream fos = new FileOutputStream(file);
+			fos.write(response.getFile());
+			fos.close();
+			
+			/*
+			 * TODO: Finalmente, comprobar la integridad del fichero creado para comprobar
+			 * que es idéntico al original, calculando el hash a partir de su contenido con
+			 * FileDigest.computeFileChecksumString y comparándolo con el hash completo del
+			 * fichero solicitado. Para ello, es necesario obtener del servidor el hash
+			 * completo del fichero descargado, ya que quizás únicamente obtuvimos una
+			 * subcadena del mismo como parámetro.
+			 */
+						
+			String downloadedHash = FileDigest.computeFileChecksumString(file.toString());
+			if(downloadedHash.equals(targetFileHashSubstr)) {
+				downloaded = true;
+			}
+		} else if(response.getOpcode() == PeerMessageOps.OPCODE_FILE_NOT_FOUND) {
+			System.err.println("ERROR: File not found.");
+		} else {
+			System.err.println("ERROR: An error has occurred.");
+		}
 		/*
 		 * NOTA: Hay que tener en cuenta que puede que la subcadena del hash pasada como
 		 * parámetro no identifique unívocamente ningún fichero disponible en el
 		 * servidor (porque no concuerde o porque haya más de un fichero coincidente con
 		 * dicha subcadena)
-		 */
-
-		/*
-		 * TODO: Finalmente, comprobar la integridad del fichero creado para comprobar
-		 * que es idéntico al original, calculando el hash a partir de su contenido con
-		 * FileDigest.computeFileChecksumString y comparándolo con el hash completo del
-		 * fichero solicitado. Para ello, es necesario obtener del servidor el hash
-		 * completo del fichero descargado, ya que quizás únicamente obtuvimos una
-		 * subcadena del mismo como parámetro.
 		 */
 
 		return downloaded;

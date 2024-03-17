@@ -48,9 +48,6 @@ public class NFControllerLogicP2P {
 		 * este método. Si se produce una excepción de entrada/salida (error del que no
 		 * es posible recuperarse), se debe informar sin abortar el programa
 		 */
-
-
-
 	}
 
 	/**
@@ -107,7 +104,11 @@ public class NFControllerLogicP2P {
 			File file = new File(localFileName);
 			if(!file.exists()) {
 				result = connector.downloadFile(targetFileHash, file);
-				System.out.println("File downloaded successfully");
+				if(result) {
+					System.out.println("File downloaded successfully");
+				} else {
+					System.err.println("File could not be downloaded.");
+				}
 			} else {
 				System.err.println("The file already exists in your machine.");
 			}

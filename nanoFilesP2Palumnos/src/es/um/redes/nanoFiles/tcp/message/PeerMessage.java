@@ -27,7 +27,7 @@ public class PeerMessage {
 	private String nickname;
 	private int hash;
 	private String fileName;
-	private int fileSize;
+	private long fileSize;
 	private byte[] file;
 
 	public PeerMessage() {
@@ -74,11 +74,11 @@ public class PeerMessage {
 		this.fileName = fileName;
 	}
 
-	public int getFileSize() {
+	public long getFileSize() {
 		return fileSize;
 	}
 
-	public void setFileSize(int fileSize) {
+	public void setFileSize(long fileSize) {
 		this.fileSize = fileSize;
 	}
 
@@ -122,7 +122,7 @@ public class PeerMessage {
 			message.fileName = dis.readUTF();
 			break;
 		case(PeerMessageOps.OPCODE_DOWNLOAD_FROM_OK):
-			message.fileSize = dis.readInt();
+			message.fileSize = dis.readLong();
 			message.file = dis.readAllBytes();
 			break;
 		default:
@@ -151,7 +151,7 @@ public class PeerMessage {
 			dos.writeUTF(fileName);
 			break;
 		case(PeerMessageOps.OPCODE_DOWNLOAD_FROM_OK):
-			dos.writeInt(fileSize);
+			dos.writeLong(fileSize);;
 			dos.write(file);
 			break;
 		default:

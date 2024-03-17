@@ -25,26 +25,51 @@ public class NFServerComm {
 			DataInputStream dis = new DataInputStream(socket.getInputStream());
 			DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
 			
+			/*
+			 * TODO: Mientras el cliente esté conectado, leer mensajes de socket,
+			 * convertirlo a un objeto PeerMessage y luego actuar en función del tipo de
+			 * mensaje recibido, enviando los correspondientes mensajes de respuesta.
+			 */
+			
 			while(socket.isConnected()) {
 				PeerMessage message = PeerMessage.readMessageFromInputStream(dis);
+				
+				switch(message.getOpcode()) {
+				
+				case(PeerMessageOps.OPCODE_DOWNLOAD_FROM):
+					int hash = message.getHash();
+				
+					/*
+					 * TODO: Para servir un fichero, hay que localizarlo a partir de su hash (o
+					 * subcadena) en nuestra base de datos de ficheros compartidos. Los ficheros
+					 * compartidos se pueden obtener con NanoFiles.db.getFiles(). El método
+					 * FileInfo.lookupHashSubstring es útil para buscar coincidencias de una
+					 * subcadena del hash. El método NanoFiles.db.lookupFilePath(targethash)
+					 * devuelve la ruta al fichero a partir de su hash completo.
+					 */
+				
+					FileInfo[] archivos = FileInfo.lookupHashSubstring(NanoFiles.db.getFiles(), Integer.toString(hash));
+					if(archivos == null || archivos.length>1) {
+						PeerMessage response = new PeerMessage(PeerMessageOps.OPCODE_INVALID_CODE);
+						response.writeMessageToOutputStream(dos);
+					} else {
+						PeerMessage response = new PeerMessage(PeerMessageOps.OPCODE_DOWNLOAD_FROM_OK);
+						String path = NanoFiles.db.lookupFilePath(Integer.toString(hash));
+						File file = new File(path);
+						long fileSize = file.length();
+						byte[] fileData = new byte[(int) fileSize];
+						response.setFileSize(fileSize);
+						response.setFile(fileData);
+						response.writeMessageToOutputStream(dos);
+					}
+					
+				}
 			}
 			
+		} catch (EOFException e) {
+			System.err.println("ERROR: Client has aborted.");		
 		} catch (IOException e) {
-			e.printStackTrace();
-			
+			System.err.println("ERROR: IOException has occurred.");
 		}
-		/*
-		 * TODO: Mientras el cliente esté conectado, leer mensajes de socket,
-		 * convertirlo a un objeto PeerMessage y luego actuar en función del tipo de
-		 * mensaje recibido, enviando los correspondientes mensajes de respuesta.
-		 */
-		/*
-		 * TODO: Para servir un fichero, hay que localizarlo a partir de su hash (o
-		 * subcadena) en nuestra base de datos de ficheros compartidos. Los ficheros
-		 * compartidos se pueden obtener con NanoFiles.db.getFiles(). El método
-		 * FileInfo.lookupHashSubstring es útil para buscar coincidencias de una
-		 * subcadena del hash. El método NanoFiles.db.lookupFilePath(targethash)
-		 * devuelve la ruta al fichero a partir de su hash completo.
-		 */
 	}
 }
