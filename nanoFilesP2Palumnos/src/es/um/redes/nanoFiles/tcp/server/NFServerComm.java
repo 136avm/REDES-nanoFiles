@@ -21,6 +21,17 @@ public class NFServerComm {
 		/*
 		 * TODO: Crear dis/dos a partir del socket
 		 */
+		try {
+			DataInputStream dis = new DataInputStream(socket.getInputStream());
+			DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
+			
+			while(socket.isConnected()) {
+				PeerMessage message = PeerMessage.readMessageFromInputStream(dis);
+			}
+			
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 		/*
 		 * TODO: Mientras el cliente esté conectado, leer mensajes de socket,
 		 * convertirlo a un objeto PeerMessage y luego actuar en función del tipo de
@@ -34,12 +45,5 @@ public class NFServerComm {
 		 * subcadena del hash. El método NanoFiles.db.lookupFilePath(targethash)
 		 * devuelve la ruta al fichero a partir de su hash completo.
 		 */
-
-
-
 	}
-
-
-
-
 }

@@ -204,8 +204,7 @@ public class NFControllerLogicDir {
 		 * IP:puerto válidos), se debe devolver null.
 		 */
 		InetSocketAddress serverAddr = null;
-
-
+		
 
 		return serverAddr;
 	}
@@ -219,8 +218,9 @@ public class NFControllerLogicDir {
 	 *                                   preguntamos
 	 * @return La dirección de socket del peer identificado por dicho nick, o null
 	 *         si no se encuentra ningún peer con ese nick.
+	 * @throws UnknownHostException 
 	 */
-	public InetSocketAddress getServerAddress(String serverNicknameOrSocketAddr) {
+	public InetSocketAddress getServerAddress(String serverNicknameOrSocketAddr) throws UnknownHostException {
 		InetSocketAddress fserverAddr = null;
 		/*
 		 * TODO: Averiguar si el nickname es en realidad una cadena "IP:puerto", en cuyo
@@ -236,9 +236,9 @@ public class NFControllerLogicDir {
 			 * InetSocketAddress. Para convertir un string con la IP a un objeto InetAddress
 			 * se debe usar InetAddress.getByName()
 			 */
-
-
-
+			String ip = serverNicknameOrSocketAddr.split(":")[0];
+			int port = Integer.parseInt(serverNicknameOrSocketAddr.split(":")[1]); 
+			fserverAddr = new InetSocketAddress(InetAddress.getByName(ip), port);
 		} else {
 			/*
 			 * TODO: Si es un nickname, preguntar al directorio la IP:puerto asociada a

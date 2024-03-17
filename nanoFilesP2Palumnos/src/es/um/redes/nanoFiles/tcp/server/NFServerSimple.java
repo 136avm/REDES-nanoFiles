@@ -19,12 +19,12 @@ public class NFServerSimple {
 		/*
 		 * TODO: Crear una direción de socket a partir del puerto especificado
 		 */
+		InetSocketAddress serverSocketAddress = new InetSocketAddress(PORT);
 		/*
 		 * TODO: Crear un socket servidor y ligarlo a la dirección de socket anterior
 		 */
-
-
-
+		serverSocket = new ServerSocket();
+		serverSocket.bind(serverSocketAddress);
 	}
 
 	/**
@@ -32,22 +32,27 @@ public class NFServerSimple {
 	 * de atender una conexión de un cliente. Una vez se lanza, ya no es posible
 	 * interactuar con la aplicación a menos que se implemente la funcionalidad de
 	 * detectar el comando STOP_SERVER_COMMAND (opcional)
+	 * @throws IOException 
 	 * 
 	 */
-	public void run() {
+	public void run() throws IOException {
 		/*
 		 * TODO: Comprobar que el socket servidor está creado y ligado
 		 */
+		if(serverSocket!=null && serverSocket.isBound()) {
 		/*
 		 * TODO: Usar el socket servidor para esperar conexiones de otros peers que
 		 * soliciten descargar ficheros
 		 */
+		System.out.println("\nServer is listening on port " + PORT);
+		Socket socket = serverSocket.accept();
 		/*
 		 * TODO: Al establecerse la conexión con un peer, la comunicación con dicho
 		 * cliente se hace en el método NFServerComm.serveFilesToClient(socket), al cual
 		 * hay que pasarle el socket devuelto por accept
 		 */
-
+		NFServerComm.serveFilesToClient(socket);
+		}
 
 
 		System.out.println("NFServerSimple stopped. Returning to the nanoFiles shell...");
