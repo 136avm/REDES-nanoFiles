@@ -9,6 +9,7 @@ public class PeerMessageOps {
 	public static final byte OPCODE_FILE_NOT_FOUND = 1;
 	public static final byte OPCODE_DOWNLOAD_FROM = 2;
 	public static final byte OPCODE_DOWNLOAD_FROM_OK = 3;
+	public static final byte OPCODE_AMBIGUOUS_DOWNLOAD = 4;
 
 	/**
 	 * TODO: Definir constantes con nuevos opcodes de mensajes
@@ -19,13 +20,15 @@ public class PeerMessageOps {
 			OPCODE_INVALID_CODE,
 			OPCODE_FILE_NOT_FOUND,
 			OPCODE_DOWNLOAD_FROM,
-			OPCODE_DOWNLOAD_FROM_OK};
+			OPCODE_DOWNLOAD_FROM_OK,
+			OPCODE_AMBIGUOUS_DOWNLOAD};
 	
 	private static final String[] _valid_operations_str = {
 			"INVALID_OPCODE",
 			"FILE_NOT_FOUND",
 			"DOWNLOAD_FROM",
-			"DOWNLOAD_FROM_OK"};
+			"DOWNLOAD_FROM_OK",
+			"AMBIGUOUS_DOWNLOAD"};
 
 	private static Map<String, Byte> _operation_to_opcode;
 	private static Map<Byte, String> _opcode_to_operation;

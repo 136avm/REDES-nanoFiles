@@ -14,9 +14,6 @@ import es.um.redes.nanoFiles.util.FileInfo;
 
 public class PeerMessage {
 
-
-
-
 	private byte opcode;
 
 	/*
@@ -25,21 +22,23 @@ public class PeerMessage {
 	 * 
 	 */
 	private String nickname;
-	private int hash;
+	private String hash;
 	private String fileName;
-	private long fileSize;
+	private int fileSize;
 	private byte[] file;
 
 	public PeerMessage() {
 		opcode = PeerMessageOps.OPCODE_INVALID_CODE;
 		this.nickname = "";
 		this.fileName = "";
+		this.hash = "";
 	}
 
 	public PeerMessage(byte op) {
 		opcode = op;
 		this.nickname = "";
 		this.fileName = "";
+		this.hash = "";
 	}
 
 	/*
@@ -58,11 +57,11 @@ public class PeerMessage {
 		this.nickname = nickname;
 	}
 
-	public int getHash() {
+	public String getHash() {
 		return hash;
 	}
 
-	public void setHash(int hash) {
+	public void setHash(String hash) {
 		this.hash = hash;
 	}
 
@@ -74,11 +73,11 @@ public class PeerMessage {
 		this.fileName = fileName;
 	}
 
-	public long getFileSize() {
+	public int getFileSize() {
 		return fileSize;
 	}
 
-	public void setFileSize(long fileSize) {
+	public void setFileSize(int fileSize) {
 		this.fileSize = fileSize;
 	}
 
@@ -115,15 +114,19 @@ public class PeerMessage {
 		PeerMessage message = new PeerMessage(opcode);
 		switch (opcode) {
 		case(PeerMessageOps.OPCODE_FILE_NOT_FOUND):
+		case(PeerMessageOps.OPCODE_AMBIGUOUS_DOWNLOAD):
 			break;
 		case(PeerMessageOps.OPCODE_DOWNLOAD_FROM):
 			message.nickname = dis.readUTF();
-			message.hash = dis.readInt();
+			message.hash = dis.readUTF();
 			message.fileName = dis.readUTF();
 			break;
 		case(PeerMessageOps.OPCODE_DOWNLOAD_FROM_OK):
-			message.fileSize = dis.readLong();
-			message.file = dis.readAllBytes();
+			message.hash = dis.readUTF();
+			message.fileSize = dis.readInt();
+			
+			message.file = dis.readNBytes(message.fileSize);
+			
 			break;
 		default:
 			System.err.println("PeerMessage.readMessageFromInputStream doesn't know how to parse this message opcode: "
@@ -144,15 +147,19 @@ public class PeerMessage {
 		dos.writeByte(opcode);
 		switch (opcode) {
 		case(PeerMessageOps.OPCODE_FILE_NOT_FOUND):
+		case(PeerMessageOps.OPCODE_AMBIGUOUS_DOWNLOAD):
 			break;
 		case(PeerMessageOps.OPCODE_DOWNLOAD_FROM):
 			dos.writeUTF(nickname);
-			dos.writeInt(hash);
+			dos.writeUTF(hash);
 			dos.writeUTF(fileName);
 			break;
 		case(PeerMessageOps.OPCODE_DOWNLOAD_FROM_OK):
-			dos.writeLong(fileSize);;
+			dos.writeUTF(hash);
+			dos.writeInt(fileSize);
+			
 			dos.write(file);
+			
 			break;
 		default:
 			System.err.println("PeerMessage.writeMessageToOutputStream found unexpected message opcode " + opcode + "("

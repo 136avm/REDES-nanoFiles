@@ -1,6 +1,7 @@
 package es.um.redes.nanoFiles.tcp.server;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
@@ -14,12 +15,28 @@ public class NFServer implements Runnable {
 	private ServerSocket serverSocket = null;
 	private boolean stopServer = false;
 	private static final int SERVERSOCKET_ACCEPT_TIMEOUT_MILISECS = 1000;
-
+	private static final String STOP_SERVER_COMMAND = "fgstop";
+	private static final int PORT = 10000;
 	public NFServer() throws IOException {
 		/*
 		 * TODO: Crear un socket servidor y ligarlo a cualquier puerto disponible
 		 */
-
+		boolean creado = false;
+		int usedPort = PORT;
+		while(!creado) {
+			try {
+				InetSocketAddress serverSocketAddress = new InetSocketAddress(usedPort);
+				/*
+				 * TODO: Crear un socket servidor y ligarlo a la dirección de socket anterior
+				 */
+				serverSocket = new ServerSocket();
+				serverSocket.bind(serverSocketAddress);
+				creado = true;
+				
+			} catch (IOException e) {
+				usedPort++;
+			}
+		}
 
 
 	}
@@ -30,11 +47,26 @@ public class NFServer implements Runnable {
 	 * 
 	 * @see java.lang.Runnable#run()
 	 */
+	
+	
 	public void run() {
 		/*
 		 * TODO: Usar el socket servidor para esperar conexiones de otros peers que
 		 * soliciten descargar ficheros
 		 */
+		System.out.println("\nServer is listening on port " + this.getServerPort() + "\nType " + STOP_SERVER_COMMAND + " to stop the server");
+		while(!stopServer) {
+			try {
+				Socket socket = serverSocket.accept();
+				System.out.println("\n Client connected. Client info:\n InetAddress: "+socket.getInetAddress().toString()+"\n Port: " + socket.getPort());
+				
+				NFServerThread st = new NFServerThread(socket);
+				st.start();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			
+		}
 		/*
 		 * TODO: Al establecerse la conexión con un peer, la comunicación con dicho
 		 * cliente se hace en el método NFServerComm.serveFilesToClient(socket), al cual
@@ -57,6 +89,9 @@ public class NFServer implements Runnable {
 	 * nuevo que se ejecutará en segundo plano 2) Detener el servidor (stopserver)
 	 * 3) Obtener el puerto de escucha del servidor etc.
 	 */
+	public int getServerPort() {
+		return serverSocket.getLocalPort();
+	}
 
 
 

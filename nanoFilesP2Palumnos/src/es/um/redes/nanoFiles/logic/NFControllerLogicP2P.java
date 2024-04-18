@@ -11,6 +11,7 @@ import java.util.LinkedList;
 import java.util.Random;
 
 import es.um.redes.nanoFiles.tcp.client.NFConnector;
+import es.um.redes.nanoFiles.tcp.server.NFServer;
 import es.um.redes.nanoFiles.tcp.server.NFServerSimple;
 
 
@@ -38,8 +39,8 @@ public class NFControllerLogicP2P {
 		 * TODO: Crear objeto servidor NFServerSimple y ejecutarlo en primer plano.
 		 */
 		try {
-			NFServerSimple serverSimple = new NFServerSimple();
-			serverSimple.run();
+			NFServer server = new NFServer();
+			server.run();
 		} catch (IOException e) {
 			System.err.println("ERROR: IOException has occurred");
 		}
@@ -48,6 +49,9 @@ public class NFControllerLogicP2P {
 		 * este método. Si se produce una excepción de entrada/salida (error del que no
 		 * es posible recuperarse), se debe informar sin abortar el programa
 		 */
+
+
+
 	}
 
 	/**
@@ -107,8 +111,9 @@ public class NFControllerLogicP2P {
 				if(result) {
 					System.out.println("File downloaded successfully");
 				} else {
-					System.err.println("File could not be downloaded.");
+					System.err.println("Download failed");
 				}
+				
 			} else {
 				System.err.println("The file already exists in your machine.");
 			}
