@@ -23,7 +23,8 @@ public class NFControllerLogicP2P {
 	 * TODO: Para bgserve, se necesita un atributo NFServer que actuará como
 	 * servidor de ficheros en segundo plano de este peer
 	 */
-
+	private NFServer server;
+	private NFServerSimple serverSimple;
 
 
 
@@ -34,13 +35,15 @@ public class NFControllerLogicP2P {
 	 * Método para arrancar un servidor de ficheros en primer plano.
 	 * 
 	 */
-	protected void foregroundServeFiles() {
+	protected void foregroundServeFiles(NFControllerLogicDir controllerDir) {
 		/*
 		 * TODO: Crear objeto servidor NFServerSimple y ejecutarlo en primer plano.
 		 */
 		try {
-			NFServer server = new NFServer();
-			server.run();
+			serverSimple = new NFServerSimple();
+			controllerDir.registerFileServer(getServerPortFG());
+			serverSimple.run();
+			controllerDir.unregisterFileServer();
 		} catch (IOException e) {
 			System.err.println("ERROR: IOException has occurred");
 		}
@@ -70,15 +73,32 @@ public class NFControllerLogicP2P {
 		 * comprobar que el servidor está escuchando en un puerto válido (>0) e imprimir
 		 * mensaje informando sobre el puerto, y devolver verdadero.
 		 */
+		if(server!=null ) {
+			System.out.println("There is already an active server.");
+			return false;
+		}
+		try {
+			server = new NFServer();
+			server.startServer();
+			
+			if(getServerPort()>0) {
+				System.out.println("Server listening on port: " + getServerPort());
+			} else {
+				System.out.println("ERROR: Server cannot be inicialiced.");
+			}
+			
+			return true;
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			System.out.println("ERROR: IOException has occurred");
+			return false;
+		}
+		
 		/*
 		 * TODO: Las excepciones que puedan lanzarse deben ser capturadas y tratadas en
 		 * este método. Si se produce una excepción de entrada/salida (error del que no
 		 * es posible recuperarse), se debe informar sin abortar el programa
 		 */
-
-
-
-		return false;
 	}
 
 	/**
@@ -121,7 +141,7 @@ public class NFControllerLogicP2P {
 		} catch (UnknownHostException e) {
 			System.err.println("ERROR: UnknownHostException has occurred.");
 		} catch (IOException e) {
-			System.err.println("ERROR: IOException has occurred");
+			System.err.println("ERROR: Server does not exist");
 		}
 		/*
 		 * TODO: Las excepciones que puedan lanzarse deben ser capturadas y tratadas en
@@ -179,8 +199,19 @@ public class NFControllerLogicP2P {
 		 * TODO: Devolver el puerto de escucha de nuestro servidor de ficheros en
 		 * segundo plano
 		 */
+		
+		port = server.getServerPort();
 
-
+		return port;
+	}
+	public int getServerPortFG() {
+		int port = 0;
+		/*
+		 * TODO: Devolver el puerto de escucha de nuestro servidor de ficheros en
+		 * segundo plano
+		 */
+		
+		port = serverSimple.getServerPort();
 
 		return port;
 	}
@@ -194,7 +225,8 @@ public class NFControllerLogicP2P {
 		 * TODO: Enviar señal para detener nuestro servidor de ficheros en segundo plano
 		 */
 
-
+		server.stopServer();
+		server = null;
 
 	}
 

@@ -3,7 +3,6 @@ package es.um.redes.nanoFiles.logic;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.LinkedList;
 
@@ -115,7 +114,15 @@ public class NFControllerLogicDir {
 			} else {
 				System.out.println("Usuarios conectados:");
 				for(String usr: lista) {
-					System.out.print(usr + " ");
+					String nombre = usr.split(":")[0];
+					String tipo = usr.split(":")[1];
+					try {
+						tipo += ": " + usr.split(":")[2];
+					} catch (ArrayIndexOutOfBoundsException e) {
+						
+					}
+					System.out.println(nombre + " Type: " + tipo);
+					
 				}
 				System.out.println("");
 			}
@@ -149,9 +156,10 @@ public class NFControllerLogicDir {
 	 * 
 	 * @param serverPort el puerto en el que está escuchando nuestro servidor de
 	 *                   ficheros
+	 * @throws IOException 
 	 */
 
-	public boolean registerFileServer(int serverPort) {
+	public boolean registerFileServer(int serverPort) throws IOException {
 		/*
 		 * TODO: Darse de alta en el directorio como servidor. Comunicarse con el
 		 * directorio (a través del directoryConnector) para enviar el número de puerto
@@ -161,7 +169,7 @@ public class NFControllerLogicDir {
 		 */
 		boolean result = false;
 
-
+		result = directoryConnector.registerServerPort(serverPort);
 
 		return result;
 	}
@@ -194,8 +202,9 @@ public class NFControllerLogicDir {
 	 * @return La dirección de socket del servidor identificado por dich nick, o
 	 *         null si no se encuentra ningún usuario con ese nick que esté
 	 *         sirviendo ficheros.
+	 * @throws IOException 
 	 */
-	private InetSocketAddress lookupServerAddrByUsername(String nickname) {
+	private InetSocketAddress lookupServerAddrByUsername(String nickname) throws IOException {
 		/*
 		 * TODO: Obtener IP:puerto de un servidor de ficheros a partir de su nickname.
 		 * Comunicarse con el directorio (a través del directoryConnector) para
@@ -205,6 +214,7 @@ public class NFControllerLogicDir {
 		 */
 		InetSocketAddress serverAddr = null;
 		
+		serverAddr = directoryConnector.lookupServerAddrByUsername(nickname);
 
 		return serverAddr;
 	}
@@ -218,9 +228,9 @@ public class NFControllerLogicDir {
 	 *                                   preguntamos
 	 * @return La dirección de socket del peer identificado por dicho nick, o null
 	 *         si no se encuentra ningún peer con ese nick.
-	 * @throws UnknownHostException 
+	 * @throws IOException 
 	 */
-	public InetSocketAddress getServerAddress(String serverNicknameOrSocketAddr) throws UnknownHostException {
+	public InetSocketAddress getServerAddress(String serverNicknameOrSocketAddr) throws IOException {
 		InetSocketAddress fserverAddr = null;
 		/*
 		 * TODO: Averiguar si el nickname es en realidad una cadena "IP:puerto", en cuyo
@@ -304,8 +314,9 @@ public class NFControllerLogicDir {
 	 * Método para dar de baja a nuestro servidor de ficheros en el directorio.
 	 * 
 	 * @return Éxito o fracaso de la operación
+	 * @throws IOException 
 	 */
-	public boolean unregisterFileServer() {
+	public boolean unregisterFileServer() throws IOException {
 		/*
 		 * TODO: Comunicarse con el directorio (a través del directoryConnector) para
 		 * darse de baja como servidor de ficheros. Se debe enviar la clave de sesión
@@ -313,7 +324,7 @@ public class NFControllerLogicDir {
 		 */
 		boolean result = false;
 
-
+		result = directoryConnector.unregisterServer();
 
 		return result;
 	}

@@ -33,6 +33,8 @@ public class DirMessage {
 	private static final String FIELDNAME_NICK = "nickname";
 	private static final String FIELDNAME_SESSION = "sessionkey";
 	private static final String FIELDNAME_USERS = "users";
+	private static final String FIELDNAME_IP = "ip";
+	private static final String FIELDNAME_PORT = "port";
 
 
 	/**
@@ -46,6 +48,8 @@ public class DirMessage {
 	private String nickname;
 	private String sessionKey;
 	private String users;
+	private InetAddress ip;
+	private String port;
 
 
 
@@ -93,6 +97,20 @@ public class DirMessage {
 	public void setUsers(String users) {
 		this.users = users;
 	}
+	
+	public InetAddress getIp() {
+		return this.ip;
+	}
+	public void setIp(InetAddress ip) {
+		this.ip = ip;
+	}
+	
+	public String getPort() {
+		return this.port;
+	}
+	public void setPort(String port) {
+		this.port = port;
+	}
 
 
 
@@ -105,8 +123,9 @@ public class DirMessage {
 	 * @param message El mensaje recibido por el socket, como cadena de caracteres
 	 * @return Un objeto PeerMessage que modela el mensaje recibido (tipo, valores,
 	 *         etc.)
+	 * @throws UnknownHostException 
 	 */
-	public static DirMessage fromString(String message) {
+	public static DirMessage fromString(String message) throws UnknownHostException {
 		/*
 		 * TODO: Usar un bucle para parsear el mensaje línea a línea, extrayendo para
 		 * cada línea el nombre del campo y el valor, usando el delimitador DELIMITER, y
@@ -142,6 +161,14 @@ public class DirMessage {
 			}
 			case FIELDNAME_USERS: {
 				m.users = value;
+				break;
+			}
+			case FIELDNAME_IP: {
+				m.ip = InetAddress.getByName(value.substring(1));
+				break;
+			}
+			case FIELDNAME_PORT: {
+				m.port = value;
 				break;
 			}
 
@@ -185,6 +212,12 @@ public class DirMessage {
 		}
 		if(this.users!=null) {
 			sb.append(FIELDNAME_USERS + DELIMITER + users + END_LINE);
+		}
+		if(this.ip!=null) {
+			sb.append(FIELDNAME_IP + DELIMITER + ip + END_LINE);
+		}
+		if(this.port!=null) {
+			sb.append(FIELDNAME_PORT + DELIMITER + port + END_LINE);
 		}
 
 		sb.append(END_LINE); // Marcamos el final del mensaje

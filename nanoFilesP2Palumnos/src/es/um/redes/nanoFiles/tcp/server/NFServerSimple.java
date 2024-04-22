@@ -10,6 +10,8 @@ import java.net.SocketTimeoutException;
 import java.nio.channels.SelectableChannel;
 import java.util.Scanner;
 
+import es.um.redes.nanoFiles.logic.NFControllerLogicDir;
+
 
 
 public class NFServerSimple {
@@ -18,8 +20,7 @@ public class NFServerSimple {
 	private static final String STOP_SERVER_COMMAND = "fgstop";
 	private static final int PORT = 10000;
 	private ServerSocket serverSocket = null;
-	private volatile boolean serverState;
-	
+	private boolean stopRequested = false;
 	
 	public NFServerSimple() throws IOException {
 		/*
@@ -36,41 +37,13 @@ public class NFServerSimple {
 				 */
 				serverSocket = new ServerSocket();
 				serverSocket.bind(serverSocketAddress);
+				serverSocket.setSoTimeout(SERVERSOCKET_ACCEPT_TIMEOUT_MILISECS);
 				creado = true;
-				serverState = true;
 			} catch (IOException e) {
 				usedPort++;
 			}
-		}
-		
-		
+		}	
 	}
-	
-	public class ServerStopper extends Thread  {
-		public final Exception ServerStoppedException = new Exception();
-		public void run() {
-			BufferedReader scanner = new BufferedReader(new InputStreamReader(System.in));
-			while (serverState) {
-	            try {
-					if (scanner.ready()) {
-					    String entrada = scanner.readLine();
-					    if (entrada.equalsIgnoreCase(STOP_SERVER_COMMAND)) {
-					    	System.out.println("Stopping server. Finalizing current requests...");
-					        serverState = false;
-					        	        
-					        
-					    }
-					}
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-	        }
-		}
-	} 
-		
-	
-
 	/**
 	 * Método para ejecutar el servidor de ficheros en primer plano. Sólo es capaz
 	 * de atender una conexión de un cliente. Una vez se lanza, ya no es posible
@@ -88,15 +61,16 @@ public class NFServerSimple {
 		/*
 		 * TODO: Usar el socket servidor para esperar conexiones de otros peers que
 		 * soliciten descargar ficheros
-		 */
-			ServerStopper serverStopper = new ServerStopper();
-			serverStopper.start();
+		 */	
 			System.out.println("\nServer is listening on port " + serverSocket.getLocalPort() + "\nType " + STOP_SERVER_COMMAND + " to stop the server");
-			while(serverState) {
-				Socket socket = serverSocket.accept();
-				System.out.println("\n Client connected. Client info:\n InetAddress: "+socket.getInetAddress().toString()+"\n Port: " + socket.getPort());
-				NFServerComm.serveFilesToClient(socket);
-				
+			while(!stopRequested) {
+				try {
+					Socket socket = serverSocket.accept();
+					System.out.println("\n Client connected. Client info:\n InetAddress: "+socket.getInetAddress().toString()+"\n Port: " + socket.getPort());
+					NFServerComm.serveFilesToClient(socket);
+				} catch(SocketTimeoutException e) {
+					chechStopCommand();
+				}				
 			}
 			
 		/*
@@ -112,5 +86,19 @@ public class NFServerSimple {
 
 
 		System.out.println("NFServerSimple stopped. Returning to the nanoFiles shell...");
+	}
+	
+	private void chechStopCommand() throws IOException {
+		BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+        if (reader.ready()) {
+            String input = reader.readLine();
+            if (input.equalsIgnoreCase(STOP_SERVER_COMMAND)) {
+                stopRequested = true;
+            }
+        }
+	}
+	
+	public int getServerPort() {
+		return serverSocket.getLocalPort();
 	}
 }

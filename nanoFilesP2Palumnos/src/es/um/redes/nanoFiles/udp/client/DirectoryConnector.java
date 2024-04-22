@@ -279,11 +279,48 @@ public class DirectoryConnector {
 	 * @param serverPort El puerto TCP en el que este peer sirve ficheros a otros
 	 * @return Verdadero si el directorio acepta que este peer se convierta en
 	 *         servidor.
+	 * @throws IOException 
 	 */
-	public boolean registerServerPort(int serverPort) {
+	public boolean registerServerPort(int serverPort) throws IOException {
 		// TODO: Ver TODOs en logIntoDirectory y seguir esquema similar
 		boolean success = false;
-
+		
+		DirMessage mensaje = new DirMessage(DirMessageOps.OPERATION_REGISTER);
+		mensaje.setPort(Integer.toString(serverPort));
+		mensaje.setSessionKey(Integer.toString(this.sessionKey));
+		String login = mensaje.toString();
+		byte[] loginBytes = login.getBytes();
+		byte[] respuesta = sendAndReceiveDatagrams(loginBytes);
+		String respuestaString = new String(respuesta);
+		DirMessage respuestaMensaje = DirMessage.fromString(respuestaString);
+		if (respuestaMensaje.getOperation().equals(NFDirectoryServer.REGISTER_OK)) {
+			System.out.println("Server registered successfuly.");
+			success = true;
+		} else {
+			System.err.println("ERROR: Server registration failed.");
+		}
+		
+		return success;
+	}
+	
+	public boolean unregisterServer() throws IOException {
+		// TODO: Ver TODOs en logIntoDirectory y seguir esquema similar
+		boolean success = false;
+		
+		DirMessage mensaje = new DirMessage(DirMessageOps.OPERATION_UNREGISTER);
+		mensaje.setSessionKey(Integer.toString(this.sessionKey));
+		String login = mensaje.toString();
+		byte[] loginBytes = login.getBytes();
+		byte[] respuesta = sendAndReceiveDatagrams(loginBytes);
+		String respuestaString = new String(respuesta);
+		DirMessage respuestaMensaje = DirMessage.fromString(respuestaString);
+		if (respuestaMensaje.getOperation().equals(NFDirectoryServer.UNREGISTER_OK)) {
+			System.out.println("Server unregistered successfuly.");
+			success = true;
+		} else {
+			System.err.println("ERROR: Server unregistration failed.");
+		}
+		
 		return success;
 	}
 
@@ -295,10 +332,27 @@ public class DirectoryConnector {
 	 * @return La dirección de socket del servidor en caso de que haya algún
 	 *         servidor dado de alta en el directorio con ese nick, o null en caso
 	 *         contrario.
+	 * @throws IOException 
 	 */
-	public InetSocketAddress lookupServerAddrByUsername(String nick) {
+	public InetSocketAddress lookupServerAddrByUsername(String nick) throws IOException {
 		InetSocketAddress serverAddr = null;
 		// TODO: Ver TODOs en logIntoDirectory y seguir esquema similar
+		
+		DirMessage mensaje = new DirMessage(DirMessageOps.OPERATION_DOWNLOADFROM);
+		mensaje.setNickname(nick);
+		mensaje.setSessionKey(Integer.toString(sessionKey));
+		String login = mensaje.toString();
+		byte[] loginBytes = login.getBytes();
+		byte[] respuesta = sendAndReceiveDatagrams(loginBytes);
+		String respuestaString = new String(respuesta);
+		DirMessage respuestaMensaje = DirMessage.fromString(respuestaString);
+		if (respuestaMensaje.getOperation().equals(NFDirectoryServer.DOWNLOADFROM_OK)) {
+			InetAddress ip = respuestaMensaje.getIp();
+			int port = Integer.parseInt(respuestaMensaje.getPort());
+			serverAddr = new InetSocketAddress(ip, port);
+		} else {
+			System.err.println("ERROR: downloadfrom failed. There is no user logged with this nickname.");
+		}
 
 		return serverAddr;
 	}

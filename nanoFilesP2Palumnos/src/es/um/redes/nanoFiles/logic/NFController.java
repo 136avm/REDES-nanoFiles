@@ -1,6 +1,7 @@
 package es.um.redes.nanoFiles.logic;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -138,7 +139,7 @@ public class NFController {
 			 * Pedir al controllerPeer que lance un servidor de ficheros en primer plano
 			 * (método foregroundServeFiles). Este método no retorna...
 			 */
-			controllerPeer.foregroundServeFiles();
+			controllerPeer.foregroundServeFiles(controllerDir);
 			break;
 		case NFCommands.COM_PUBLISH:
 			/*
@@ -266,8 +267,6 @@ public class NFController {
 			currentState = LOGGED_OUT;
 			break;
 		}
-
-
 
 		default:
 		}

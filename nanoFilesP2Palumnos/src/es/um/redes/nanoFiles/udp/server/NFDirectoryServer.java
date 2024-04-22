@@ -29,6 +29,12 @@ public class NFDirectoryServer {
 	public static final String LOGOUT_ERR = "logout_failed";
 	public static final String LIST_OK = "userlistok";
 	public static final String LIST_ERR = "userlist_failed";
+	public static final String DOWNLOADFROM_OK = "downloadfrom_ok";
+	public static final String DOWNLOADFROM_ERR = "downloadfrom_failed";
+	public static final String REGISTER_OK = "register_ok";
+	public static final String REGISTER_ERR = "register_failed";
+	public static final String UNREGISTER_OK = "unregister_ok";
+	public static final String UNREGISTER_ERR = "unregister_failed";
 
 	/**
 	 * Socket de comunicación UDP con el cliente UDP (DirectoryConnector)
@@ -44,6 +50,9 @@ public class NFDirectoryServer {
 	 * 
 	 */
 	private HashMap<Integer, String> sessionKeys;
+	
+	private HashMap<String, String> nickPort;
+	private HashMap<String, InetAddress> nickIP;
 	/*
 	 * TODO: Añadir aquí como atributos las estructuras de datos que sean necesarias
 	 * para mantener en el directorio cualquier información necesaria para la
@@ -82,6 +91,8 @@ public class NFDirectoryServer {
 		 */
 		this.nicks = new HashMap<String, Integer>();
 		this.sessionKeys = new HashMap<Integer, String>();
+		this.nickPort = new HashMap<String, String>();
+		this.nickIP = new HashMap<String, InetAddress>();
 
 		if (NanoFiles.testMode) {
 			if (socket == null || nicks == null || sessionKeys == null) {
@@ -259,6 +270,8 @@ public class NFDirectoryServer {
 				String username = sessionKeys.get(sessionKey);
 				nicks.remove(username);
 				sessionKeys.remove(sessionKey);
+				nickPort.remove(username);
+				nickIP.remove(username);
 				response = new DirMessage(LOGOUT_OK);
 				response.setSessionKey(msg.getSessionKey());
 				response.setNickname(username);
@@ -275,16 +288,75 @@ public class NFDirectoryServer {
 			if(sessionKeys.containsKey(sessionKey)) {
 				String username = "";
 				for(String usr : nicks.keySet()) {
-					username += usr+",";
+					String usrInfo = usr;
+					if(nickPort.containsKey(usr)) {
+						usrInfo+=":Server";
+						usrInfo+="\t Port: " + nickPort.get(usr);
+					}else {
+						usrInfo+=":User";
+					}
+					username += usrInfo+",";
 				}
 				response = new DirMessage(LIST_OK);
 				response.setUsers(username);
 				response.setSessionKey(msg.getSessionKey());
 				response.setNickname(sessionKeys.get(Integer.parseInt(msg.getSessionKey())));
 				System.out.println("List successful.");
+				break;
 			} else {
 				response = new DirMessage(LIST_ERR);
 				System.out.println("ERROR: List failed. Invalid sessionKey");
+				break;
+			}
+		}
+		case DirMessageOps.OPERATION_DOWNLOADFROM: {
+			String username = msg.getNickname();
+			int sessionKey = Integer.parseInt(msg.getSessionKey());
+			if(sessionKeys.containsKey(sessionKey)) {
+				if(nickPort.containsKey(username) && nickIP.containsKey(username)) {
+					response = new DirMessage(DOWNLOADFROM_OK);
+					response.setPort(nickPort.get(username));
+					response.setIp(clientAddr.getAddress());
+					System.out.println("Downloadfrom successful.");
+					break;
+				} else {
+					response = new DirMessage(DOWNLOADFROM_ERR);
+					System.out.println("ERROR: downloadfrom failed. Invalid nickname");
+					break;
+				}
+			} else {
+				response = new DirMessage(DOWNLOADFROM_ERR);
+				System.out.println("ERROR: downloadfrom failed. Invalid sessionKey");
+				break;
+			}
+		}
+		case DirMessageOps.OPERATION_REGISTER: {
+			int sessionKey = Integer.parseInt(msg.getSessionKey());
+			if(sessionKeys.containsKey(sessionKey)) {
+				String username = sessionKeys.get(sessionKey);
+				nickPort.put(username, msg.getPort());
+				nickIP.put(username, clientAddr.getAddress());
+				response = new DirMessage(REGISTER_OK);
+				System.out.println("Register successfu.");
+				System.out.println(nickPort);
+				break;
+			} else {
+				response = new DirMessage(REGISTER_ERR);
+				System.out.println("ERROR: register error. Invalid sessionKey");
+				break;
+			}
+		}
+		case DirMessageOps.OPERATION_UNREGISTER: {
+			int sessionKey = Integer.parseInt(msg.getSessionKey());
+			if(sessionKeys.containsKey(sessionKey)) {
+				String username = sessionKeys.get(sessionKey);
+				nickPort.remove(username);
+				nickIP.remove(username);
+				response = new DirMessage(UNREGISTER_OK);
+				System.out.println("Unregister successful.");
+			} else {
+				response = new DirMessage(REGISTER_ERR);
+				System.out.println("ERROR: unregister error. Invalid sessionKey");
 			}
 		}
 
