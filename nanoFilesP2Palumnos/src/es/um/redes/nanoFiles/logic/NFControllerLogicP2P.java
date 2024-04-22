@@ -42,6 +42,7 @@ public class NFControllerLogicP2P {
 		try {
 			serverSimple = new NFServerSimple();
 			controllerDir.registerFileServer(getServerPortFG());
+			controllerDir.publishLocalFiles();
 			serverSimple.run();
 			controllerDir.unregisterFileServer();
 		} catch (IOException e) {
@@ -112,7 +113,7 @@ public class NFControllerLogicP2P {
 			String localFileName) {
 		boolean result = false;
 		if (fserverAddr == null) {
-			System.err.println("* Cannot start download - No server address provided");
+			System.err.println("* Cannot start download - No server address provided or invalid address");
 			return false;
 		}
 		/*

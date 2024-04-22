@@ -3,6 +3,8 @@ package es.um.redes.nanoFiles.udp.message;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
+import java.nio.ByteBuffer;
+import java.util.HashMap;
 import java.util.LinkedList;
 
 import es.um.redes.nanoFiles.util.FileInfo;
@@ -35,6 +37,9 @@ public class DirMessage {
 	private static final String FIELDNAME_USERS = "users";
 	private static final String FIELDNAME_IP = "ip";
 	private static final String FIELDNAME_PORT = "port";
+	private static final String FIELDNAME_FILES = "files";
+	private static final String FIELDNAME_HASH = "hash";
+	private static final String FIELDNAME_SERVERS = "servers";
 
 
 	/**
@@ -50,14 +55,14 @@ public class DirMessage {
 	private String users;
 	private InetAddress ip;
 	private String port;
-
+	private String files;
+	private String hash;
+	private String servers;
 
 
 	public DirMessage(String op) {
 		operation = op;
 	}
-
-
 
 
 	/*
@@ -111,7 +116,29 @@ public class DirMessage {
 		this.port = port;
 	}
 
+	public String getFiles() {
+		return files;
+	}
 
+	public void setFiles(String files) {
+		this.files = files;
+	}
+
+	public String getServers() {
+		return servers;
+	}
+
+	public void setServers(String servers) {
+		this.servers = servers;
+	}
+
+	public String getHash() {
+		return hash;
+	}
+
+	public void setHash(String hash) {
+		this.hash = hash;
+	}
 
 
 	/**
@@ -170,6 +197,18 @@ public class DirMessage {
 				m.port = value;
 				break;
 			}
+			case FIELDNAME_FILES: {
+				m.files = value;
+				break;
+			}
+			case FIELDNAME_HASH: {
+				m.hash = value;
+				break;
+			}
+			case FIELDNAME_SERVERS: {
+				m.servers = value;
+				break;
+			}
 
 			default:
 				System.err.println("PANIC: DirMessage.fromString - message with unknown field name " + fieldName);
@@ -215,6 +254,15 @@ public class DirMessage {
 		}
 		if(this.port!=null) {
 			sb.append(FIELDNAME_PORT + DELIMITER + port + END_LINE);
+		}
+		if(this.files != null){
+			sb.append(FIELDNAME_FILES + DELIMITER + files + END_LINE);
+		}
+		if(this.hash != null){
+			sb.append(FIELDNAME_HASH + DELIMITER + hash + END_LINE);
+		}
+		if(this.servers != null){
+			sb.append(FIELDNAME_SERVERS + DELIMITER + servers + END_LINE);
 		}
 
 		sb.append(END_LINE); // Marcamos el final del mensaje

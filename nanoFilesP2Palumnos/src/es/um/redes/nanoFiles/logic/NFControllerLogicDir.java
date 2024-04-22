@@ -135,8 +135,9 @@ public class NFControllerLogicDir {
 	/**
 	 * Método para obtener y mostrar la lista de ficheros que los peer servidores
 	 * han publicado al directorio
+	 * @throws IOException 
 	 */
-	protected boolean getAndPrintFileList() {
+	protected boolean getAndPrintFileList() throws IOException {
 		/*
 		 * TODO: Obtener la lista de ficheros servidos. Comunicarse con el directorio (a
 		 * través del directoryConnector) para obtener la lista de ficheros e imprimirla
@@ -145,7 +146,21 @@ public class NFControllerLogicDir {
 		 */
 		boolean result = false;
 
-
+		FileInfo[] ficheros = directoryConnector.getFileList();
+		if(ficheros.length!=0 && ficheros[0]!=null){
+			result = true;
+			System.out.println("Ficheros publicos:");
+			for(FileInfo fichero : ficheros){
+				String[] nicks = directoryConnector.getServerNicknamesSharingThisFile(fichero.fileHash);
+				LinkedList<String> nickList = new LinkedList<String>();
+				for(String nick : nicks) {
+					nickList.add(nick);
+				}
+				if (fichero != null) System.out.println("Fichero: " + fichero.fileName + " Hash: " + fichero.fileHash + " Servers: " + nickList);
+			}
+		} else {
+			System.out.println("No hay ficheros");
+		}
 
 		return result;
 	}
@@ -177,9 +192,10 @@ public class NFControllerLogicDir {
 	/**
 	 * Método para enviar al directorio la lista de ficheros que este peer servidor
 	 * comparte con el resto (ver método filelist).
+	 * @throws IOException 
 	 * 
 	 */
-	protected boolean publishLocalFiles() {
+	protected boolean publishLocalFiles() throws IOException {
 		/*
 		 * TODO: Comunicarse con el directorio (a través del directoryConnector) para
 		 * enviar la lista de ficheros servidos por este peer. Los ficheros de la
@@ -265,8 +281,9 @@ public class NFControllerLogicDir {
 	 * 
 	 * @param fileHashSubstring una subcadena del hash del fichero por el que se
 	 *                          pregunta
+	 * @throws IOException 
 	 */
-	public boolean getAndPrintServersNicknamesSharingThisFile(String fileHashSubstring) {
+	public boolean getAndPrintServersNicknamesSharingThisFile(String fileHashSubstring) throws IOException {
 		/*
 		 * TODO: Comunicarse con el directorio (a través del directoryConnector) para
 		 * preguntar por aquellos servidores que están sirviendo un determinado fichero,
@@ -275,7 +292,14 @@ public class NFControllerLogicDir {
 		 */
 		boolean result = false;
 
-
+		String[] nicks = directoryConnector.getServerNicknamesSharingThisFile(fileHashSubstring);
+		if(nicks != null){
+			result = true;
+			System.out.println("Servidores que comparten el fichero:");
+			for (String nick : nicks){
+				System.out.println(nick);
+			}
+		}
 
 		return result;
 	}

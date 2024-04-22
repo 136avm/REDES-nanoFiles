@@ -160,7 +160,8 @@ public class NFController {
 			 */
 			boolean serverRunning = controllerPeer.backgroundServeFiles();
 			if (serverRunning) {
-				commandSucceeded = controllerDir.registerFileServer(controllerPeer.getServerPort());
+				controllerDir.registerFileServer(controllerPeer.getServerPort());
+				commandSucceeded = true;
 			}
 			break;
 		case NFCommands.COM_STOP_SERVER:
@@ -256,7 +257,7 @@ public class NFController {
 			break;
 		}
 		case NFCommands.COM_FGSERVE: {
-			if(currentState == LOGGED_OUT) {
+			if(currentState != LOGGED_IN) {
 				commandAllowed = false;
 				System.err.println("* You cannot start a foreground server because you are not logged in");
 			}
@@ -266,13 +267,6 @@ public class NFController {
 			if(currentState == LOGGED_OUT) {
 				commandAllowed = false;
 				System.err.println("* You cannot start a background server because you are not logged in");
-			}
-			break;
-		}
-		case NFCommands.COM_MYFILES: {
-			if(currentState == LOGGED_OUT) {
-				commandAllowed = false;
-				System.err.println("* You cannot list the files because you are not logged in");
 			}
 			break;
 		}
@@ -286,12 +280,28 @@ public class NFController {
 		case NFCommands.COM_STOP_SERVER: {
 			if(currentState != SERVING) {
 				commandAllowed = false;
-				System.err.println("You cannot stop a background server because you have not started one");
+				System.err.println("* You cannot stop a background server because you have not started one");
 			}
 			break;
 		}
-
-
+		case NFCommands.COM_PUBLISH: {
+			if(currentState == LOGGED_OUT) {
+				commandAllowed = false;
+				System.err.println("* You cannot publish files because you are not logged in");
+			}
+		}
+		case NFCommands.COM_SEARCH: {
+			if(currentState == LOGGED_OUT) {
+				commandAllowed = false;
+				System.err.println("* You cannot search a file because you are not logged in");
+			}
+		}
+		case NFCommands.COM_FILELIST: {
+			if(currentState == LOGGED_OUT) {
+				commandAllowed = false;
+				System.err.println("* You cannot list the shared files because you are not logged in");
+			}
+		}
 
 		default:
 			// System.err.println("ERROR: undefined behaviour for " + currentCommand + "

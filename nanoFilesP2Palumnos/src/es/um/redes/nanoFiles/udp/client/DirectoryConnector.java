@@ -7,6 +7,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketTimeoutException;
 
+import es.um.redes.nanoFiles.tcp.server.NFServer;
 import es.um.redes.nanoFiles.udp.message.DirMessage;
 import es.um.redes.nanoFiles.udp.message.DirMessageOps;
 import es.um.redes.nanoFiles.udp.server.NFDirectoryServer;
@@ -364,12 +365,29 @@ public class DirectoryConnector {
 	 * @param files La lista de ficheros que este peer está sirviendo.
 	 * @return Verdadero si el directorio tiene registrado a este peer como servidor
 	 *         y acepta la lista de ficheros, falso en caso contrario.
+	 * @throws IOException 
 	 */
-	public boolean publishLocalFiles(FileInfo[] files) {
+	public boolean publishLocalFiles(FileInfo[] files) throws IOException {
 		boolean success = false;
 
 		DirMessage mensaje = new DirMessage(DirMessageOps.OPERATION_PUBLISH);
 		mensaje.setSessionKey(Integer.toString(sessionKey));
+		String fileStr = "";
+		for (FileInfo file : files) {
+			fileStr += file.fileHash + "," + file.fileName + ":";
+		}
+		mensaje.setFiles(fileStr);
+		String publish = mensaje.toString();
+		byte[] publishBytes = publish.getBytes();
+		byte[] respuesta = sendAndReceiveDatagrams(publishBytes);
+		String respuestaString = new String(respuesta);
+		DirMessage respuestaMensaje = DirMessage.fromString(respuestaString);
+		if(respuestaMensaje.getOperation().equals(NFDirectoryServer.PUBLISH_OK)) {
+			System.out.println("Files published successfully");
+			success = true;
+		} else {
+			System.err.println("ERROR: publish failed");
+		}
 
 		return success;
 	}
@@ -382,11 +400,34 @@ public class DirectoryConnector {
 	 * 
 	 * @return Los ficheros publicados al directorio, o null si el directorio no
 	 *         pudo satisfacer nuestra solicitud
+	 * @throws IOException 
 	 */
-	public FileInfo[] getFileList() {
+	public FileInfo[] getFileList() throws IOException {
 		FileInfo[] filelist = null;
 		// TODO: Ver TODOs en logIntoDirectory y seguir esquema similar
 
+		DirMessage mensaje = new DirMessage(DirMessageOps.OPERATION_FILELIST);
+		mensaje.setSessionKey(Integer.toString(sessionKey));
+		String fileList = mensaje.toString();
+		byte[] fileListBytes = fileList.getBytes();
+		byte[] respuesta = sendAndReceiveDatagrams(fileListBytes);
+		String respuestaString = new String(respuesta);
+		DirMessage respuestaMensaje = DirMessage.fromString(respuestaString);
+		if(respuestaMensaje.getOperation().equals(NFDirectoryServer.FILELIST_OK)) {
+			String[] filelistArray = respuestaMensaje.getFiles().split(":");
+			filelist = new FileInfo[filelistArray.length];
+			try{
+				for (int i = 0; i < filelist.length; i++) {
+
+					filelist[i] = new FileInfo(filelistArray[i].split(",")[0], filelistArray[i].split(",")[1], 0, null);
+				}
+			} catch (ArrayIndexOutOfBoundsException e) {
+
+			}
+		} else {
+			System.err.println("ERROR: filelist failed");
+		}
+		
 		return filelist;
 	}
 
@@ -398,11 +439,25 @@ public class DirectoryConnector {
 	 * @return La lista de nicknames de los servidores que han publicado al
 	 *         directorio el fichero indicado. Si no hay ningún servidor, devuelve
 	 *         una lista vacía.
+	 * @throws IOException 
 	 */
-	public String[] getServerNicknamesSharingThisFile(String fileHash) {
+	public String[] getServerNicknamesSharingThisFile(String fileHash) throws IOException {
 		String[] nicklist = null;
 		// TODO: Ver TODOs en logIntoDirectory y seguir esquema similar
-
+		DirMessage mensaje = new DirMessage(DirMessageOps.OPERATION_SEARCH);
+		mensaje.setSessionKey(Integer.toString(sessionKey));
+		mensaje.setHash(fileHash);
+		String search = mensaje.toString();
+		byte[] searchBytes = search.getBytes();
+		byte[] respuesta = sendAndReceiveDatagrams(searchBytes);
+		String respuestaString = new String(respuesta);
+		DirMessage respuestaMensaje = DirMessage.fromString(respuestaString);
+		if(respuestaMensaje.getOperation().equals(NFDirectoryServer.SEARCH_OK)) {
+			nicklist = respuestaMensaje.getServers().split(",");
+		} else {
+			System.err.println("ERROR: search failed");
+		}
+		
 		return nicklist;
 	}
 

@@ -7,10 +7,16 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Random;
+import java.util.Set;
 
 import es.um.redes.nanoFiles.application.NanoFiles;
 import es.um.redes.nanoFiles.udp.message.DirMessage;
@@ -37,6 +43,10 @@ public class NFDirectoryServer {
 	public static final String UNREGISTER_ERR = "unregister_failed";
 	public static final String PUBLISH_OK = "publish_ok";
 	public static final String PUBLISH_ERR = "publish_failed";
+	public static final String FILELIST_OK = "filelist_ok";
+	public static final String FILELIST_ERR = "filelist_failed";
+	public static final String SEARCH_OK = "search_ok";
+	public static final String SEARCH_ERR = "search_failed";
 
 	/**
 	 * Socket de comunicación UDP con el cliente UDP (DirectoryConnector)
@@ -55,6 +65,8 @@ public class NFDirectoryServer {
 	
 	private HashMap<String, String> nickPort;
 	private HashMap<String, InetAddress> nickIP;
+	private HashMap<Integer, HashMap<String,String>> publishedFiles;
+	private HashMap<String, LinkedList<String>> fichServers;
 	/*
 	 * TODO: Añadir aquí como atributos las estructuras de datos que sean necesarias
 	 * para mantener en el directorio cualquier información necesaria para la
@@ -95,6 +107,8 @@ public class NFDirectoryServer {
 		this.sessionKeys = new HashMap<Integer, String>();
 		this.nickPort = new HashMap<String, String>();
 		this.nickIP = new HashMap<String, InetAddress>();
+		this.publishedFiles = new HashMap<Integer , HashMap<String,String>>();
+		this.fichServers = new HashMap<String, LinkedList<String>>();
 
 		if (NanoFiles.testMode) {
 			if (socket == null || nicks == null || sessionKeys == null) {
@@ -354,11 +368,99 @@ public class NFDirectoryServer {
 				String username = sessionKeys.get(sessionKey);
 				nickPort.remove(username);
 				nickIP.remove(username);
+				publishedFiles.remove(sessionKey);
+				for(LinkedList<String> servers : fichServers.values()) {
+					if(servers.contains(username)) {
+						servers.remove(username);
+					}
+				}
+				LinkedList<String> vacias = new LinkedList<String>();
+				for(Map.Entry<String, LinkedList<String>> entry : fichServers.entrySet()) {
+					if(entry.getValue().isEmpty()) {
+						vacias.add(entry.getKey());
+					}
+				}
+				for(String entry : vacias) {
+					fichServers.remove(entry);
+				}
 				response = new DirMessage(UNREGISTER_OK);
 				System.out.println("Unregister successful.");
+				break;
 			} else {
 				response = new DirMessage(REGISTER_ERR);
 				System.out.println("ERROR: unregister error. Invalid sessionKey");
+				break;
+			}
+		}
+		case DirMessageOps.OPERATION_PUBLISH: {
+			int sessionKey = Integer.parseInt(msg.getSessionKey());
+			if(sessionKeys.containsKey(sessionKey)) {
+				String[] files = msg.getFiles().split(":");
+				HashMap<String,String> hashesSet = new HashMap<String,String>();
+				for(int i = 0; i < files.length; i++) {
+					hashesSet.put(files[i].split(",")[0], files[i].split(",")[1]);
+				}
+				publishedFiles.put(sessionKey, hashesSet);
+				for(String hash : hashesSet.keySet()) {
+					if(!fichServers.containsKey(hash)) {
+						fichServers.put(hash, new LinkedList<String>());
+					}
+					fichServers.get(hash).add(sessionKeys.get(sessionKey));
+				}
+				response = new DirMessage(PUBLISH_OK);
+				System.out.println("Files published successfully");
+				break;
+			} else {
+				response = new DirMessage(PUBLISH_ERR);
+				System.out.println("ERROR: publish error. Invalid sessionKey");
+				break;
+			}
+		}
+		case DirMessageOps.OPERATION_FILELIST: {
+			int sessionKey = Integer.parseInt(msg.getSessionKey());
+			if(sessionKeys.containsKey(sessionKey)) {
+				response = new DirMessage(FILELIST_OK);
+				String files = "";
+				Set<String> hashesInserted = new HashSet<String>();
+				for(Map.Entry<Integer,HashMap<String,String>> server : publishedFiles.entrySet()) {
+					for(Map.Entry<String,String> fichero : server.getValue().entrySet()){
+						if(!hashesInserted.contains(fichero.getKey())){
+							files += fichero.getKey() + "," + fichero.getValue() + ":";
+							hashesInserted.add(fichero.getKey());
+						}
+					}
+
+				}
+				response.setFiles(files);
+				break;
+			} else {
+				response = new DirMessage(FILELIST_ERR);
+				System.out.println("ERROR: filelist error. Invalid sessionKey");
+				break;
+			}
+		}
+		case DirMessageOps.OPERATION_SEARCH: {
+			int sessionKey = Integer.parseInt(msg.getSessionKey());
+			if(sessionKeys.containsKey(sessionKey)) {
+				String hash = msg.getHash();
+				String servers = "";
+				if(fichServers.containsKey(hash)) {
+					for(String username : fichServers.get(hash)) {
+						servers += username + ",";
+					}
+				}
+				if(servers.length()>0) {
+					response = new DirMessage(SEARCH_OK);
+					response.setServers(servers);
+					System.out.println("Search successful");
+					break;
+				} else {
+					response = new DirMessage(SEARCH_ERR);
+					System.out.println();
+				}
+			} else {
+				response = new DirMessage(SEARCH_ERR);
+				System.out.println("ERROR: search error. Invalid sessionKey");
 			}
 		}
 

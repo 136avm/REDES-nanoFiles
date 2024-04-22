@@ -14,5 +14,7 @@ public class DirMessageOps {
 	public static final String OPERATION_REGISTER = "register";
 	public static final String OPERATION_UNREGISTER = "unregister";
 	public static final String OPERATION_PUBLISH = "publish";
-
+	public static final String OPERATION_FILELIST = "filelist";
+	public static final String OPERATION_SEARCH = "search";
+	
 }
