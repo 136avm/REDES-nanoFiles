@@ -35,6 +35,8 @@ public class NFDirectoryServer {
 	public static final String REGISTER_ERR = "register_failed";
 	public static final String UNREGISTER_OK = "unregister_ok";
 	public static final String UNREGISTER_ERR = "unregister_failed";
+	public static final String PUBLISH_OK = "publish_ok";
+	public static final String PUBLISH_ERR = "publish_failed";
 
 	/**
 	 * Socket de comunicación UDP con el cliente UDP (DirectoryConnector)

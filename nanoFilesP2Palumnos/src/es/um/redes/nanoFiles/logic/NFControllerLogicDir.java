@@ -189,7 +189,7 @@ public class NFControllerLogicDir {
 		 */
 		boolean result = false;
 
-
+		result = directoryConnector.publishLocalFiles(NanoFiles.db.getFiles());
 
 		return result;
 	}

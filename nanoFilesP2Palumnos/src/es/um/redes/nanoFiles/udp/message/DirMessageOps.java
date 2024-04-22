@@ -13,5 +13,6 @@ public class DirMessageOps {
 	public static final String OPERATION_DOWNLOADFROM = "downloadfrom";
 	public static final String OPERATION_REGISTER = "register";
 	public static final String OPERATION_UNREGISTER = "unregister";
+	public static final String OPERATION_PUBLISH = "publish";
 
 }

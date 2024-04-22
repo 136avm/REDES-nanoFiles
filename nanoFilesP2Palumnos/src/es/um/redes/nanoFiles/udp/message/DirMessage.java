@@ -53,7 +53,6 @@ public class DirMessage {
 
 
 
-
 	public DirMessage(String op) {
 		operation = op;
 	}
@@ -171,8 +170,6 @@ public class DirMessage {
 				m.port = value;
 				break;
 			}
-
-
 
 			default:
 				System.err.println("PANIC: DirMessage.fromString - message with unknown field name " + fieldName);

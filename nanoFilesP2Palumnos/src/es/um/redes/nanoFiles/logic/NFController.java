@@ -17,6 +17,7 @@ public class NFController {
 	 */
 	private static final byte LOGGED_OUT = 0;
 	private static final byte LOGGED_IN = 1;
+	private static final byte SERVING = 2;
 	/*
 	 * TODO: Añadir más constantes que representen los estados del autómata del
 	 * cliente de directorio.
@@ -229,16 +230,66 @@ public class NFController {
 		 */
 		boolean commandAllowed = true;
 		switch (currentCommand) {
-		case NFCommands.COM_MYFILES: {
-			commandAllowed = true;
-			break;
-		}
 		case NFCommands.COM_LOGIN:
 			if (currentState != LOGGED_OUT) {
 				commandAllowed = false;
 				System.err.println("* You cannot login because you are not logged out from the directory");
 			}
 			break;
+		case NFCommands.COM_LOGOUT: {
+			if(currentState == LOGGED_OUT) {
+				commandAllowed = false;
+				System.err.println("* You cannot logout because you are not logged in");
+				break;
+			}
+			if(currentState == SERVING) {
+				commandAllowed = false;
+				System.err.println("* You must stop the background server before logging out");
+				break;
+			}
+		}
+		case NFCommands.COM_USERLIST: {
+			if(currentState == LOGGED_OUT) {
+				commandAllowed = false;
+				System.err.println("* You cannot list users because you are not logged in");
+			}
+			break;
+		}
+		case NFCommands.COM_FGSERVE: {
+			if(currentState == LOGGED_OUT) {
+				commandAllowed = false;
+				System.err.println("* You cannot start a foreground server because you are not logged in");
+			}
+			break;
+		}
+		case NFCommands.COM_BGSERVE: {
+			if(currentState == LOGGED_OUT) {
+				commandAllowed = false;
+				System.err.println("* You cannot start a background server because you are not logged in");
+			}
+			break;
+		}
+		case NFCommands.COM_MYFILES: {
+			if(currentState == LOGGED_OUT) {
+				commandAllowed = false;
+				System.err.println("* You cannot list the files because you are not logged in");
+			}
+			break;
+		}
+		case NFCommands.COM_DOWNLOADFROM: {
+			if(currentState == LOGGED_OUT) {
+				commandAllowed = false;
+				System.err.println("* You cannot download the file because you are not logged in");
+			}
+			break;
+		}
+		case NFCommands.COM_STOP_SERVER: {
+			if(currentState != SERVING) {
+				commandAllowed = false;
+				System.err.println("You cannot stop a background server because you have not started one");
+			}
+			break;
+		}
 
 
 
@@ -265,6 +316,14 @@ public class NFController {
 		}
 		case NFCommands.COM_LOGOUT: {
 			currentState = LOGGED_OUT;
+			break;
+		}
+		case NFCommands.COM_BGSERVE: {
+			currentState = SERVING;
+			break;
+		}
+		case NFCommands.COM_STOP_SERVER: {
+			currentState = LOGGED_IN;
 			break;
 		}
 

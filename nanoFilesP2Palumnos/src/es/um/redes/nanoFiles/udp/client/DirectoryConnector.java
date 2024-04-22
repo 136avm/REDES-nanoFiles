@@ -288,9 +288,9 @@ public class DirectoryConnector {
 		DirMessage mensaje = new DirMessage(DirMessageOps.OPERATION_REGISTER);
 		mensaje.setPort(Integer.toString(serverPort));
 		mensaje.setSessionKey(Integer.toString(this.sessionKey));
-		String login = mensaje.toString();
-		byte[] loginBytes = login.getBytes();
-		byte[] respuesta = sendAndReceiveDatagrams(loginBytes);
+		String register = mensaje.toString();
+		byte[] registerBytes = register.getBytes();
+		byte[] respuesta = sendAndReceiveDatagrams(registerBytes);
 		String respuestaString = new String(respuesta);
 		DirMessage respuestaMensaje = DirMessage.fromString(respuestaString);
 		if (respuestaMensaje.getOperation().equals(NFDirectoryServer.REGISTER_OK)) {
@@ -309,9 +309,9 @@ public class DirectoryConnector {
 		
 		DirMessage mensaje = new DirMessage(DirMessageOps.OPERATION_UNREGISTER);
 		mensaje.setSessionKey(Integer.toString(this.sessionKey));
-		String login = mensaje.toString();
-		byte[] loginBytes = login.getBytes();
-		byte[] respuesta = sendAndReceiveDatagrams(loginBytes);
+		String unregister = mensaje.toString();
+		byte[] unregisterBytes = unregister.getBytes();
+		byte[] respuesta = sendAndReceiveDatagrams(unregisterBytes);
 		String respuestaString = new String(respuesta);
 		DirMessage respuestaMensaje = DirMessage.fromString(respuestaString);
 		if (respuestaMensaje.getOperation().equals(NFDirectoryServer.UNREGISTER_OK)) {
@@ -341,9 +341,9 @@ public class DirectoryConnector {
 		DirMessage mensaje = new DirMessage(DirMessageOps.OPERATION_DOWNLOADFROM);
 		mensaje.setNickname(nick);
 		mensaje.setSessionKey(Integer.toString(sessionKey));
-		String login = mensaje.toString();
-		byte[] loginBytes = login.getBytes();
-		byte[] respuesta = sendAndReceiveDatagrams(loginBytes);
+		String lookUp = mensaje.toString();
+		byte[] lookUpBytes = lookUp.getBytes();
+		byte[] respuesta = sendAndReceiveDatagrams(lookUpBytes);
 		String respuestaString = new String(respuesta);
 		DirMessage respuestaMensaje = DirMessage.fromString(respuestaString);
 		if (respuestaMensaje.getOperation().equals(NFDirectoryServer.DOWNLOADFROM_OK)) {
@@ -368,7 +368,8 @@ public class DirectoryConnector {
 	public boolean publishLocalFiles(FileInfo[] files) {
 		boolean success = false;
 
-		// TODO: Ver TODOs en logIntoDirectory y seguir esquema similar
+		DirMessage mensaje = new DirMessage(DirMessageOps.OPERATION_PUBLISH);
+		mensaje.setSessionKey(Integer.toString(sessionKey));
 
 		return success;
 	}
