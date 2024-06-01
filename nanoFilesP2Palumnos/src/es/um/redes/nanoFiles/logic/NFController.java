@@ -285,9 +285,9 @@ public class NFController {
 			break;
 		}
 		case NFCommands.COM_PUBLISH: {
-			if(currentState == LOGGED_OUT) {
+			if(currentState != SERVING) {
 				commandAllowed = false;
-				System.err.println("* You cannot publish files because you are not logged in");
+				System.err.println("* You cannot publish files because you are not a server");
 			}
 		}
 		case NFCommands.COM_SEARCH: {

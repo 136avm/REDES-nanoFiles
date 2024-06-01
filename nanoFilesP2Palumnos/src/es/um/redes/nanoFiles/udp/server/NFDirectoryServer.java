@@ -456,11 +456,13 @@ public class NFDirectoryServer {
 					break;
 				} else {
 					response = new DirMessage(SEARCH_ERR);
-					System.out.println();
+					System.out.println("ERROR: search error. File does not exist");
+					break;
 				}
 			} else {
 				response = new DirMessage(SEARCH_ERR);
 				System.out.println("ERROR: search error. Invalid sessionKey");
+				break;
 			}
 		}
 
